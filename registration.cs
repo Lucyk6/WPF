@@ -1,4 +1,4 @@
-<Window x:Class="Testing.WorkModul"
+      <Window x:Class="Testing.WorkModul"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -9,32 +9,138 @@
     <Grid>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition></ColumnDefinition>
-            <ColumnDefinition Width="3*"></ColumnDefinition>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column="0" Margin="5">
-
             <Grid.RowDefinitions>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
             </Grid.RowDefinitions>
             
-            <Button Name="btnUser1" Grid.Row="0" Content="Пользователь 1" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="5" FontFamily="Times New Roman" FontSize="20" Click="btnUser1_Click"/>
-            <Button Name="btnUser2" Grid.Row="1" Content="Пользователь 2" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="5" FontFamily="Times New Roman" FontSize="20"></Button>
-            <Button Name="btnUser3" Grid.Row="2" Content="Пользователь 3" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="5" FontFamily="Times New Roman" FontSize="20"></Button>
-            <Button Name="btnUser4" Grid.Row="3" Content="Пользователь 4" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="5" FontFamily="Times New Roman" FontSize="20"></Button>
-            
+            <Button Name="btnUser1" Grid.Row="0" Content="Пользователь 1" 
+                    Margin="5" FontSize="20" Click="btnUser1_Click"/>
+            <Button Name="btnUser2" Grid.Row="1" Content="Пользователь 2" 
+                    Margin="5" FontSize="20" Click="btnUser2_Click"/>
+            <Button Name="btnUser3" Grid.Row="2" Content="Пользователь 3" 
+                    Margin="5" FontSize="20" Click="btnUser3_Click"/>
+            <Button Name="btnUser4" Grid.Row="3" Content="Пользователь 4" 
+                    Margin="5" FontSize="20" Click="btnUser4_Click"/>
         </Grid>
 
         <Grid Grid.Column="1" Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+
+            <Label Name="txtUserName" Grid.Row="0" Content="Имя: " 
+                   Margin="5" FontSize="26"/>
+            <Label Name="txtUserGender" Grid.Row="1" Content="Пол: " 
+                   Margin="5" FontSize="26"/>
+            <Label Name="txtUserAge" Grid.Row="2" Content="Возраст: " 
+                   Margin="5" FontSize="26"/>
+            <Label Name="txtUserLogin" Grid.Row="3" Content="Логин: " 
+                   Margin="5" FontSize="26"/>
+            <Label Name="txtUserPassword" Grid.Row="4" Content="Пароль: " 
+                   Margin="5" FontSize="26"/>
+        </Grid>
+        
+    </Grid>
+</Window>
+
+
+
+
+using System;
+using System.Windows;
+
+namespace Testing
+{
+    public partial class WorkModul : Window
+    {
+        private string currentUser;
+
+        public WorkModul(string login)
+        {
+            InitializeComponent();
+            currentUser = login;
+            ShowUserInfo(login);
+        }
+
+        private void ShowUserInfo(string login)
+        {
+            switch (login)
+            {
+                case "user1":
+                    txtUserName.Content = "Имя: Иван Петров";
+                    txtUserGender.Content = "Пол: Мужской";
+                    txtUserAge.Content = "Возраст: 25 лет";
+                    txtUserLogin.Content = "Логин: user1";
+                    txtUserPassword.Content = "Пароль: 123";
+                    break;
+                case "user2":
+                    txtUserName.Content = "Имя: Мария Сидорова";
+                    txtUserGender.Content = "Пол: Женский";
+                    txtUserAge.Content = "Возраст: 30 лет";
+                    txtUserLogin.Content = "Логин: user2";
+                    txtUserPassword.Content = "Пароль: 123";
+                    break;
+                case "user3":
+                    txtUserName.Content = "Имя: Алексей Иванов";
+                    txtUserGender.Content = "Пол: Мужской";
+                    txtUserAge.Content = "Возраст: 28 лет";
+                    txtUserLogin.Content = "Логин: user3";
+                    txtUserPassword.Content = "Пароль: 123";
+                    break;
+                case "user4":
+                    txtUserName.Content = "Имя: Елена Смирнова";
+                    txtUserGender.Content = "Пол: Женский";
+                    txtUserAge.Content = "Возраст: 35 лет";
+                    txtUserLogin.Content = "Логин: user4";
+                    txtUserPassword.Content = "Пароль: 123";
+                    break;
+            }
+        }
+
+        private void btnUser1_Click(object sender, RoutedEventArgs e)
+        {
+            ShowUserInfo("user1");
+        }
+
+        private void btnUser2_Click(object sender, RoutedEventArgs e)
+        {
+            ShowUserInfo("user2");
+        }
+
+        private void btnUser3_Click(object sender, RoutedEventArgs e)
+        {
+            ShowUserInfo("user3");
+        }
+
+        private void btnUser4_Click(object sender, RoutedEventArgs e)
+        {
+            ShowUserInfo("user4");
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            Environment.Exit(0);
+        }
+    }
+}
+
+
+
+
+
+<Grid Grid.Column="1" Margin="5">
 
             <Grid.RowDefinitions>
                 <RowDefinition></RowDefinition>
