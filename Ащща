@@ -1,0 +1,269 @@
+<Window x:Class="UserManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Управление пользователями" Height="500" Width="700"
+        WindowStartupLocation="CenterScreen">
+    
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Поиск -->
+        <TextBox x:Name="SearchBox" Grid.Row="0" Margin="0,0,0,10" 
+                 TextChanged="SearchBox_TextChanged">
+            <TextBox.ToolTip>Поиск по имени или логину</TextBox.ToolTip>
+        </TextBox>
+
+        <!-- Кнопки управления -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+            <Button x:Name="AddBtn" Content="Добавить" Width="100" Margin="0,0,5,0" 
+                    Click="AddBtn_Click"/>
+            <Button x:Name="EditBtn" Content="Редактировать" Width="100" Margin="0,0,5,0" 
+                    Click="EditBtn_Click"/>
+            <Button x:Name="DeleteBtn" Content="Удалить" Width="100" Margin="0,0,5,0" 
+                    Click="DeleteBtn_Click"/>
+        </StackPanel>
+
+        <!-- DataGrid для списка пользователей -->
+        <DataGrid x:Name="UsersGrid" Grid.Row="2" AutoGenerateColumns="False" 
+                  SelectionChanged="UsersGrid_SelectionChanged"
+                  IsReadOnly="True" Margin="0,0,0,10">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
+                <DataGridTextColumn Header="Имя" Binding="{Binding Username}" Width="150"/>
+                <DataGridTextColumn Header="Логин" Binding="{Binding Login}" Width="120"/>
+                <DataGridTextColumn Header="Дата создания" Binding="{Binding CreatedDate}" Width="150"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Панель редактирования -->
+        <Border x:Name="EditPanel" Grid.Row="3" BorderBrush="Gray" BorderThickness="1" 
+                Padding="10" Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Имя:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+                <TextBox x:Name="EditUsername" Grid.Row="0" Grid.Column="1" Margin="0,0,10,5"/>
+
+                <TextBlock Text="Логин:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
+                <TextBox x:Name="EditLogin" Grid.Row="1" Grid.Column="1" Margin="0,0,10,5"/>
+
+                <TextBlock Text="Пароль:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
+                <PasswordBox x:Name="EditPassword" Grid.Row="2" Grid.Column="1" Margin="0,0,10,5"/>
+
+                <StackPanel Grid.Row="0" Grid.Column="2" Grid.RowSpan="3" Orientation="Horizontal">
+                    <Button x:Name="SaveBtn" Content="Сохранить" Width="80" Margin="0,0,5,0" 
+                            Click="SaveBtn_Click"/>
+                    <Button x:Name="CancelBtn" Content="Отмена" Width="80" 
+                            Click="CancelBtn_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+
+namespace UserManager
+{
+    public partial class MainWindow : Window
+    {
+        private ObservableCollection<User> _users;
+        private User _editingUser;
+        private bool _isEditMode;
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            LoadSampleData();
+        }
+
+        // Класс пользователя
+        public class User
+        {
+            public int Id { get; set; }
+            public string Username { get; set; }
+            public string Login { get; set; }
+            public string Password { get; set; }
+            public DateTime CreatedDate { get; set; }
+        }
+
+        private void LoadSampleData()
+        {
+            _users = new ObservableCollection<User>
+            {
+                new User { Id = 1, Username = "Иван Петров", Login = "ivan.p", 
+                          Password = "123", CreatedDate = DateTime.Now.AddDays(-30) },
+                new User { Id = 2, Username = "Мария Сидорова", Login = "maria.s", 
+                          Password = "456", CreatedDate = DateTime.Now.AddDays(-15) },
+                new User { Id = 3, Username = "Алексей Иванов", Login = "alex.i", 
+                          Password = "789", CreatedDate = DateTime.Now.AddDays(-7) }
+            };
+            UsersGrid.ItemsSource = _users;
+        }
+
+        // Поиск
+        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string searchText = SearchBox.Text.ToLower();
+            
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                UsersGrid.ItemsSource = _users;
+            }
+            else
+            {
+                var filtered = _users.Where(u => u.Username.ToLower().Contains(searchText) ||
+                                                  u.Login.ToLower().Contains(searchText));
+                UsersGrid.ItemsSource = new ObservableCollection<User>(filtered);
+            }
+        }
+
+        // Добавление
+        private void AddBtn_Click(object sender, RoutedEventArgs e)
+        {
+            _isEditMode = false;
+            _editingUser = new User
+            {
+                Id = _users.Max(u => u.Id) + 1,
+                CreatedDate = DateTime.Now
+            };
+            ShowEditPanel();
+        }
+
+        // Редактирование
+        private void EditBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = UsersGrid.SelectedItem as User;
+            if (selected == null)
+            {
+                MessageBox.Show("Выберите пользователя для редактирования", "Внимание", 
+                              MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            _isEditMode = true;
+            _editingUser = new User
+            {
+                Id = selected.Id,
+                Username = selected.Username,
+                Login = selected.Login,
+                Password = selected.Password,
+                CreatedDate = selected.CreatedDate
+            };
+            ShowEditPanel();
+        }
+
+        // Удаление
+        private void DeleteBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = UsersGrid.SelectedItem as User;
+            if (selected == null)
+            {
+                MessageBox.Show("Выберите пользователя для удаления", "Внимание", 
+                              MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (MessageBox.Show($"Удалить пользователя {selected.Username}?", "Подтверждение", 
+                MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                _users.Remove(selected);
+            }
+        }
+
+        private void ShowEditPanel()
+        {
+            EditUsername.Text = _editingUser.Username ?? "";
+            EditLogin.Text = _editingUser.Login ?? "";
+            EditPassword.Password = _editingUser.Password ?? "";
+            EditPanel.Visibility = Visibility.Visible;
+            AddBtn.IsEnabled = false;
+            EditBtn.IsEnabled = false;
+            DeleteBtn.IsEnabled = false;
+        }
+
+        private void HideEditPanel()
+        {
+            EditPanel.Visibility = Visibility.Collapsed;
+            AddBtn.IsEnabled = true;
+            EditBtn.IsEnabled = true;
+            DeleteBtn.IsEnabled = true;
+            EditUsername.Text = "";
+            EditLogin.Text = "";
+            EditPassword.Password = "";
+        }
+
+        // Сохранение
+        private void SaveBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(EditUsername.Text))
+            {
+                MessageBox.Show("Введите имя пользователя", "Ошибка", 
+                              MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(EditLogin.Text))
+            {
+                MessageBox.Show("Введите логин", "Ошибка", 
+                              MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            _editingUser.Username = EditUsername.Text;
+            _editingUser.Login = EditLogin.Text;
+            _editingUser.Password = EditPassword.Password;
+
+            if (_isEditMode)
+            {
+                // Обновление существующего пользователя
+                var existing = _users.FirstOrDefault(u => u.Id == _editingUser.Id);
+                if (existing != null)
+                {
+                    existing.Username = _editingUser.Username;
+                    existing.Login = _editingUser.Login;
+                    existing.Password = _editingUser.Password;
+                }
+            }
+            else
+            {
+                // Добавление нового пользователя
+                _users.Add(_editingUser);
+            }
+
+            // Обновляем список (если был поиск)
+            SearchBox_TextChanged(null, null);
+            HideEditPanel();
+        }
+
+        // Отмена
+        private void CancelBtn_Click(object sender, RoutedEventArgs e)
+        {
+            HideEditPanel();
+        }
+
+        private void UsersGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Ничего не делаем, просто событие для привязки
+        }
+    }
+}
+</Window>
